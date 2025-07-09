@@ -54,14 +54,14 @@ class NFCGateClientHandler(socketserver.StreamRequestHandler):
 
         while True:
             try:
-                msg_len_data = self.rfile.read(5)
+                msg_len_data = self.rfile.read(8)
             except socket.timeout:
                 self.log("server", "Timeout")
                 break
-            if len(msg_len_data) < 5:
+            if len(msg_len_data) < 8:
                 break
 
-            msg_len, session = struct.unpack("!IB", msg_len_data)
+            msg_len, session = struct.unpack("!II", msg_len_data)
             data = self.rfile.read(msg_len)
             self.log("server", "data:", bytes(data))
 
