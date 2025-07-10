@@ -94,6 +94,8 @@ class NFCGateServer(socketserver.ThreadingTCPServer):
 
         self.clients = {}
         self.plugins = PluginHandler(plugins)
+        self.allowed_sessions = set()
+        self._load_allowed_sessions()
 
         # TLS
         self.tls_options = tls_options
@@ -102,6 +104,13 @@ class NFCGateServer(socketserver.ThreadingTCPServer):
         if self.tls_options:
             self.log("TLS enabled with cert {} and key {}".format(self.tls_options["cert_file"],
                                                                   self.tls_options["key_file"]))
+
+    def _load_allowed_sessions(self):
+        try:
+            with open("rooms.txt", "r") as f:
+                self.allowed_sessions = set(int(line.strip()) for line in f if line.strip().isdigit())
+        except Exception as e:
+            self.log("Failed to load allowed rooms:", e)
 
     def get_request(self):
         client_socket, from_addr = super().get_request()
@@ -116,7 +125,7 @@ class NFCGateServer(socketserver.ThreadingTCPServer):
     def add_client(self, client, session):
         if session is None:
             return
-
+        self._load_allowed_sessions()
         if session not in self.clients:
             self.clients[session] = []
 
