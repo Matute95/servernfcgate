@@ -138,7 +138,7 @@ class NFCGateServer(socketserver.ThreadingTCPServer):
             self.clients[session] = []
 
         # Limitar a 2 clientes por room
-        if len(self.clients[session]) >= 2:
+        if len(self.clients[session]) > 6:
             client.log("room full", session)
             return
 
