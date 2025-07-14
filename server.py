@@ -69,11 +69,15 @@ class NFCGateClientHandler(socketserver.StreamRequestHandler):
             if msg_len == 0 or session == 0 and self.session is None:
                 break
 
-            # change in session number detected
+            # cambio en session detectado
             if self.session != session:
-                # remove from old association
+                # validación antes de aceptar la sesión
+                self.server._load_allowed_sessions()
+                if session not in self.server.allowed_sessions:
+                    self.log("denied session", session)
+                    break  # <- cerramos la conexión
+                # remueve cliente anterior si existe
                 self.server.remove_client(self, self.session)
-                # update and add association
                 self.session = session
                 self.server.add_client(self, session)
 
@@ -126,11 +130,16 @@ class NFCGateServer(socketserver.ThreadingTCPServer):
         if session is None:
             return
         self._load_allowed_sessions()
+        if session not in self.allowed_sessions:
+            client.log("denied session", session)
+            return
+
         if session not in self.clients:
             self.clients[session] = []
 
         self.clients[session].append(client)
         client.log("joined session", session)
+
 
     def remove_client(self, client, session):
         if session is None or session not in self.clients:
