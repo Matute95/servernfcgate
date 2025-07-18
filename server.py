@@ -136,10 +136,8 @@ class NFCGateServer(socketserver.ThreadingTCPServer):
 
         if session not in self.clients:
             self.clients[session] = []
-
-        if len(self.clients[session]) > 5:
-            client.log("room full", session)
-            return
+            with open("log.txt", "a") as f:
+                f.write(f"[server] Room/session in use: {session}\n")
 
         self.clients[session].append(client)
         client.log("joined session", session)
